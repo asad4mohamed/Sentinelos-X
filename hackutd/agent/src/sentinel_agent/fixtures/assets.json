@@ -1,0 +1,10 @@
+[
+  {"asset_id": "external-gateway", "display_name": "External Gateway", "asset_type": "gateway", "status": "healthy", "criticality": "critical", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "auth-service", "display_name": "Authentication Service", "asset_type": "identity", "status": "healthy", "criticality": "critical", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "application-api", "display_name": "Application API", "asset_type": "application", "status": "healthy", "criticality": "critical", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "primary-database", "display_name": "Primary Database", "asset_type": "database", "status": "healthy", "criticality": "critical", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "file-storage", "display_name": "File Storage", "asset_type": "storage", "status": "healthy", "criticality": "high", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "monitoring-service", "display_name": "Monitoring Service", "asset_type": "monitoring", "status": "healthy", "criticality": "medium", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "backup-service", "display_name": "Backup Service", "asset_type": "backup", "status": "healthy", "criticality": "high", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"},
+  {"asset_id": "admin-portal", "display_name": "Internal Admin Portal", "asset_type": "admin", "status": "healthy", "criticality": "medium", "last_status_update": "2026-11-07T08:00:00Z", "source_label": "simulated: virtual infrastructure, no real systems"}
+]

@@ -1,0 +1,27 @@
+{
+  "name": "sentinelos-x-services",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/telemetry/main.ts src/agent/main.ts src/preflight/main.ts --bundle --platform=node --format=esm --outdir=dist --entry-names=[dir] --sourcemap",
+    "telemetry": "npm run build && node --enable-source-maps dist/telemetry.js",
+    "agent": "npm run build && node --enable-source-maps dist/agent.js",
+    "agent:check": "npm run build && node --enable-source-maps dist/agent.js --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "spacetime:generate": "spacetime generate -y --lang typescript --out-dir src/module_bindings --module-path ../spacetime",
+    "preflight": "npm run build && node --enable-source-maps dist/preflight.js"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "spacetimedb": "^2.14.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.25.12",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

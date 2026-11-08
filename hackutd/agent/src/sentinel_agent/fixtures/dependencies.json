@@ -1,0 +1,13 @@
+[
+  {"dependency_id": "DEP-001", "from_asset_id": "external-gateway", "to_asset_id": "application-api", "kind": "critical", "description": "Gateway routes all client traffic to the Application API."},
+  {"dependency_id": "DEP-002", "from_asset_id": "external-gateway", "to_asset_id": "auth-service", "kind": "critical", "description": "Gateway validates sessions against the Authentication Service."},
+  {"dependency_id": "DEP-003", "from_asset_id": "application-api", "to_asset_id": "primary-database", "kind": "critical", "description": "Application API reads and writes all business data in the Primary Database."},
+  {"dependency_id": "DEP-004", "from_asset_id": "application-api", "to_asset_id": "auth-service", "kind": "critical", "description": "Application API verifies tokens with the Authentication Service."},
+  {"dependency_id": "DEP-005", "from_asset_id": "application-api", "to_asset_id": "file-storage", "kind": "optional", "description": "Application API stores uploads in File Storage; non-upload endpoints keep working without it."},
+  {"dependency_id": "DEP-006", "from_asset_id": "application-api", "to_asset_id": "monitoring-service", "kind": "optional", "description": "Application API ships metrics to Monitoring; it runs fine without it."},
+  {"dependency_id": "DEP-007", "from_asset_id": "auth-service", "to_asset_id": "primary-database", "kind": "optional", "description": "Authentication Service reads the user directory from the Primary Database and can serve from a local cache with reduced function."},
+  {"dependency_id": "DEP-008", "from_asset_id": "admin-portal", "to_asset_id": "auth-service", "kind": "critical", "description": "Admin Portal requires the Authentication Service for admin sign-in."},
+  {"dependency_id": "DEP-009", "from_asset_id": "admin-portal", "to_asset_id": "primary-database", "kind": "optional", "description": "Admin Portal lists users from the Primary Database; a cached view is available."},
+  {"dependency_id": "DEP-010", "from_asset_id": "backup-service", "to_asset_id": "primary-database", "kind": "optional", "description": "Backup Service snapshots the Primary Database; existing snapshots remain usable if the database is down."},
+  {"dependency_id": "DEP-011", "from_asset_id": "backup-service", "to_asset_id": "file-storage", "kind": "optional", "description": "Backup Service snapshots File Storage; existing snapshots remain usable if storage is down."}
+]

@@ -1,0 +1,16 @@
+{
+  "name": "sentinelos-x",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix spacetime install && npm --prefix frontend install && npm --prefix services install",
+    "publish:local": "spacetime publish -s local -p spacetime -y sentinelos-x",
+    "publish:fresh": "spacetime publish -s local -p spacetime -y --delete-data sentinelos-x",
+    "generate": "npm --prefix frontend run spacetime:generate && npm --prefix services run spacetime:generate",
+    "dev": "npm --prefix frontend run dev",
+    "telemetry": "npm --prefix services run telemetry",
+    "agent": "npm --prefix services run agent",
+    "test": "npm --prefix spacetime test && npm --prefix services test && npm --prefix frontend test",
+    "check": "npm --prefix spacetime run typecheck && npm --prefix spacetime test && npm --prefix services run typecheck && npm --prefix services test && npm --prefix services run build && npm --prefix frontend run typecheck && npm --prefix frontend test && npm --prefix frontend run build",
+    "preflight": "npm --prefix services run preflight --"
+  }
+}

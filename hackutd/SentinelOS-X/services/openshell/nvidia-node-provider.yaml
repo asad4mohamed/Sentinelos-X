@@ -1,0 +1,24 @@
+# Provider profile: NVIDIA API key, injected as a bearer header ONLY for
+# integrate.api.nvidia.com and ONLY for the Node runtime that runs the agent.
+# Derived from OpenShell's providers/nvidia.yaml (binaries changed curl -> node).
+id: nvidia-node
+display_name: NVIDIA (Node agent)
+description: NVIDIA inference endpoints for the SentinelOS X investigator
+category: inference
+inference_capable: true
+credentials:
+  - name: api_key
+    description: NVIDIA API key
+    env_vars: [NVIDIA_API_KEY]
+    required: true
+    auth_style: bearer
+    header_name: authorization
+discovery:
+  credentials: [api_key]
+endpoints:
+  - host: integrate.api.nvidia.com
+    port: 443
+    protocol: rest
+    access: read-write
+    enforcement: enforce
+binaries: [/usr/local/bin/node]

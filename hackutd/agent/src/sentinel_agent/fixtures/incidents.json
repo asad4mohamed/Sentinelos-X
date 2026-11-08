@@ -1,0 +1,155 @@
+[
+  {
+    "incident_id": "INC-001",
+    "title": "Suspicious file activity and file storage outage",
+    "description": "Monitoring flagged unusual file activity on shared storage and uploads started failing. A SOC analyst suspects possible ransomware. Nothing has been confirmed.",
+    "status": "open",
+    "severity": "high",
+    "detected_at": "2026-11-07T14:09:00Z",
+    "window_start": "2026-11-07T14:00:00Z",
+    "window_end": "2026-11-07T14:45:00Z",
+    "reported_by": "soc-analyst-queue",
+    "primary_asset_ids": ["file-storage"],
+    "observed_asset_states": {
+      "file-storage": {"status": "unavailable", "observed_at": "2026-11-07T14:10:20Z", "note": "marked unavailable by supervisor"},
+      "application-api": {"status": "degraded", "observed_at": "2026-11-07T14:11:00Z", "note": "upload endpoints failing"},
+      "external-gateway": {"status": "degraded", "observed_at": "2026-11-07T14:12:00Z", "note": "upload routes returning 503"},
+      "backup-service": {"status": "degraded", "observed_at": "2026-11-07T14:12:00Z", "note": "cannot take new file-storage snapshots; existing snapshots intact"}
+    },
+    "timeline": [
+      {"time": "2026-11-07T14:02:10Z", "description": "Alert: abnormal file-access rate on file-storage", "evidence_ids": ["EVT-001"]},
+      {"time": "2026-11-07T14:04:30Z", "description": "Alert: bulk rename burst under /shared/finance", "evidence_ids": ["EVT-002"]},
+      {"time": "2026-11-07T14:09:00Z", "description": "Health check failures on file-storage; incident opened", "evidence_ids": ["EVT-004"]},
+      {"time": "2026-11-07T14:10:20Z", "description": "file-storage marked unavailable", "evidence_ids": ["EVT-005"]},
+      {"time": "2026-11-07T14:11:00Z", "description": "Upload endpoints on application-api return 503", "evidence_ids": ["EVT-006"]}
+    ],
+    "candidate_strategies": [
+      {"strategy": "isolate_virtual_asset", "target_asset_id": "file-storage",
+       "assumptions": ["Isolation cuts all network paths to and from file-storage in the simulation.", "Isolation preserves the current storage contents for later forensic review (scenario assumption)."],
+       "tradeoffs": ["Does not restore uploads by itself.", "Prevents any spread from the affected storage to connected services."]},
+      {"strategy": "restore_virtual_dependency", "target_asset_id": "file-storage", "requires_operational": ["backup-service"],
+       "assumptions": ["The verified snapshot is restored onto clean virtual storage.", "Restoration succeeds (scenario assumption, not measured).", "Objects changed after the snapshot are lost."],
+       "tradeoffs": ["Restores full service.", "Restoring before the cause is understood or access is contained risks the same activity repeating.", "May overwrite evidence needed for forensics if done in place."]},
+      {"strategy": "restart_virtual_service", "target_asset_id": "file-storage", "assumed_restart_resolves": false,
+       "assumptions": ["A restart does not reverse renamed objects (scenario assumption).", "The fault is in stored data, not in the service process."],
+       "tradeoffs": ["Fast and low effort to attempt.", "Likely to destroy volatile forensic state.", "Does not remove the underlying cause."]},
+      {"strategy": "switch_to_simulated_backup", "target_asset_id": "file-storage", "requires_operational": ["backup-service"],
+       "assumptions": ["A simulated read-only replica built from the last verified snapshot serves traffic.", "The replica is stale by the age of the snapshot, so it counts as degraded."],
+       "tradeoffs": ["Restores most functionality quickly.", "Data written after the snapshot is not visible.", "Leaves the affected storage untouched for investigation."]},
+      {"strategy": "maintain_current_state", "target_asset_id": null,
+       "assumptions": ["No action is taken; the current simulated state persists."],
+       "tradeoffs": ["No operational risk from acting.", "Leaves the outage and any ongoing activity unaddressed."]}
+    ],
+    "triage_hypotheses": [
+      {"hypothesis_id": "H-1", "statement": "Ransomware-style malicious modification of file-storage objects", "source": "triage-rule"},
+      {"hypothesis_id": "H-2", "statement": "An authorized bulk batch or migration job is misbehaving", "source": "triage-rule"},
+      {"hypothesis_id": "H-3", "statement": "A storage infrastructure fault unrelated to security", "source": "triage-rule"}
+    ],
+    "historical": false,
+    "data_source": "synthetic_fixture"
+  },
+  {
+    "incident_id": "INC-002",
+    "title": "Repeated failed logins followed by unusual successful login",
+    "description": "Authentication monitoring flagged repeated failed logins for one user followed by a successful login from a new device. Analyst asked whether this warrants escalation.",
+    "status": "open",
+    "severity": "medium",
+    "detected_at": "2026-11-07T09:08:00Z",
+    "window_start": "2026-11-07T09:00:00Z",
+    "window_end": "2026-11-07T09:50:00Z",
+    "reported_by": "auth-monitoring-rule",
+    "primary_asset_ids": ["auth-service"],
+    "observed_asset_states": {},
+    "timeline": [
+      {"time": "2026-11-07T09:02:10Z", "description": "Alert: repeated failed logins for m.ortiz", "evidence_ids": ["EVT-101"]},
+      {"time": "2026-11-07T09:07:20Z", "description": "Successful login for m.ortiz from the same source after failures", "evidence_ids": ["EVT-103"]},
+      {"time": "2026-11-07T09:07:30Z", "description": "Alert: login region differs from baseline", "evidence_ids": ["EVT-104"]}
+    ],
+    "candidate_strategies": [
+      {"strategy": "maintain_current_state", "target_asset_id": null,
+       "assumptions": ["No infrastructure change; the incident is handed to a human analyst for review."],
+       "tradeoffs": ["No collateral impact on users.", "If the account is in fact compromised, access continues until a human acts."]},
+      {"strategy": "isolate_virtual_asset", "target_asset_id": "admin-portal",
+       "assumptions": ["Isolating the admin portal blocks the suspicious session from admin functions."],
+       "tradeoffs": ["Limits potential admin-level exposure.", "Admins lose portal access for all users, not just this one."]},
+      {"strategy": "isolate_virtual_asset", "target_asset_id": "auth-service",
+       "assumptions": ["Isolating the authentication service stops all logins."],
+       "tradeoffs": ["Stops all new authentication.", "Takes down every service that requires authentication."]},
+      {"strategy": "restart_virtual_service", "target_asset_id": "auth-service", "assumed_restart_resolves": false,
+       "assumptions": ["A restart does not terminate sessions of a specific user or change account state (scenario assumption)."],
+       "tradeoffs": ["Briefly disrupts authentication.", "Does not address the account activity."]}
+    ],
+    "triage_hypotheses": [
+      {"hypothesis_id": "H-1", "statement": "Credential guessing followed by takeover of the m.ortiz account", "source": "triage-rule"},
+      {"hypothesis_id": "H-2", "statement": "The legitimate user is travelling and mistyped the password", "source": "triage-rule"},
+      {"hypothesis_id": "H-3", "statement": "Unrelated background password-guessing noise", "source": "triage-rule"}
+    ],
+    "historical": false,
+    "data_source": "synthetic_fixture"
+  },
+  {
+    "incident_id": "INC-003",
+    "title": "Application API outage",
+    "description": "Customers receive 503 errors from the API. Several services are alarming at once.",
+    "status": "open",
+    "severity": "critical",
+    "detected_at": "2026-11-07T11:04:00Z",
+    "window_start": "2026-11-07T11:00:00Z",
+    "window_end": "2026-11-07T11:40:00Z",
+    "reported_by": "monitoring-service",
+    "primary_asset_ids": ["application-api", "external-gateway"],
+    "observed_asset_states": {
+      "primary-database": {"status": "unavailable", "observed_at": "2026-11-07T11:03:12Z", "note": "process exited"},
+      "application-api": {"status": "unavailable", "observed_at": "2026-11-07T11:04:00Z", "note": "503 on all requests"},
+      "external-gateway": {"status": "unavailable", "observed_at": "2026-11-07T11:05:00Z", "note": "returning 503 to clients"},
+      "auth-service": {"status": "degraded", "observed_at": "2026-11-07T11:04:10Z", "note": "serving from cache"},
+      "admin-portal": {"status": "degraded", "observed_at": "2026-11-07T11:07:00Z", "note": "cached view only"},
+      "backup-service": {"status": "degraded", "observed_at": "2026-11-07T11:08:30Z", "note": "new backups skipped; snapshots intact"}
+    },
+    "timeline": [
+      {"time": "2026-11-07T11:02:30Z", "description": "Host alert: WAL volume full on primary-database", "evidence_ids": ["EVT-201"]},
+      {"time": "2026-11-07T11:03:12Z", "description": "primary-database process exited", "evidence_ids": ["EVT-202"]},
+      {"time": "2026-11-07T11:04:00Z", "description": "Application API returns 503 on all requests", "evidence_ids": ["EVT-204"]},
+      {"time": "2026-11-07T11:05:00Z", "description": "Gateway returns 503 to clients", "evidence_ids": ["EVT-206"]}
+    ],
+    "candidate_strategies": [
+      {"strategy": "restore_virtual_dependency", "target_asset_id": "primary-database", "requires_operational": ["backup-service"],
+       "assumptions": ["Capacity is freed on the log volume and the database is brought back from its latest verified state.", "Restoration succeeds (scenario assumption, not measured)."],
+       "tradeoffs": ["Restores the full dependency chain.", "Requires a human to confirm the data state before reopening writes."]},
+      {"strategy": "restart_virtual_service", "target_asset_id": "primary-database", "assumed_restart_resolves": false,
+       "assumptions": ["The log volume is still full after a restart, so the process exits again (scenario assumption)."],
+       "tradeoffs": ["Quick to attempt.", "Likely to fail again until capacity is freed."]},
+      {"strategy": "switch_to_simulated_backup", "target_asset_id": "primary-database", "requires_operational": ["backup-service"],
+       "assumptions": ["A simulated replica built from the 10:00Z snapshot takes over and is treated as stale (degraded)."],
+       "tradeoffs": ["Restores service sooner than a full repair.", "Writes after the snapshot are lost until reconciled."]},
+      {"strategy": "restart_virtual_service", "target_asset_id": "application-api", "assumed_restart_resolves": true,
+       "assumptions": ["Restarting the API clears its connection pool; the API itself is not faulty."],
+       "tradeoffs": ["Does not address the unavailable database dependency."]},
+      {"strategy": "maintain_current_state", "target_asset_id": null,
+       "assumptions": ["No action is taken."],
+       "tradeoffs": ["No operational risk from acting.", "Outage continues."]}
+    ],
+    "triage_hypotheses": [
+      {"hypothesis_id": "H-1", "statement": "A malicious traffic flood or exploitation attempt against the Application API", "source": "triage-rule"},
+      {"hypothesis_id": "H-2", "statement": "Failure of a shared dependency causing cascading impact", "source": "triage-rule"},
+      {"hypothesis_id": "H-3", "statement": "Independent failures of the API and gateway", "source": "triage-rule"}
+    ],
+    "historical": false,
+    "data_source": "synthetic_fixture"
+  },
+  {
+    "incident_id": "INC-090", "title": "Primary database disk usage warning", "description": "Disk usage warning on the primary database log volume. Capacity ticket opened.",
+    "status": "closed", "severity": "low", "detected_at": "2026-10-28T09:00:00Z", "window_start": "2026-10-28T09:00:00Z", "window_end": "2026-10-29T09:00:00Z",
+    "reported_by": "monitoring-service", "primary_asset_ids": ["primary-database"], "historical": true
+  },
+  {
+    "incident_id": "INC-091", "title": "Authentication lockout for one user", "description": "User j.chen locked out after repeated typos; resolved by self-service reset.",
+    "status": "closed", "severity": "low", "detected_at": "2026-10-30T13:00:00Z", "window_start": "2026-10-30T13:00:00Z", "window_end": "2026-10-30T13:30:00Z",
+    "reported_by": "auth-monitoring-rule", "primary_asset_ids": ["auth-service"], "historical": true
+  },
+  {
+    "incident_id": "INC-092", "title": "File storage I/O spike during approved reindex", "description": "I/O spike on file storage caused by an approved bulk reindex job under change ticket CHG-1180.",
+    "status": "closed", "severity": "low", "detected_at": "2026-09-14T02:00:00Z", "window_start": "2026-09-14T02:00:00Z", "window_end": "2026-09-14T03:00:00Z",
+    "reported_by": "monitoring-service", "primary_asset_ids": ["file-storage"], "historical": true
+  }
+]
